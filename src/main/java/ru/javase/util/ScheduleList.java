@@ -12,7 +12,7 @@ import java.util.*;
 public class ScheduleList<T extends Slot> implements Schedule<T> {
     private Integer duration;
     private Unit unit;
-    Map<Date, List<T>> slots = new HashMap<>();
+    private Map<Date, List<T>> slots = new HashMap<>();
 
     private class Neighbors {
         private T left;
@@ -109,6 +109,12 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
         return list.get(index);
     }
 
+    /**
+     * Remove element from collection
+     *
+     * @param date Date
+     * @param slot T
+     */
     @Override
     public void remove(Date date, T slot) {
         List<T> list = _get(date);
@@ -117,6 +123,13 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
         list.remove(index);
     }
 
+    /**
+     * Update element
+     *
+     * @param date Date
+     * @param index Integer
+     * @param slot T
+     */
     @Override
     public void set(Date date, Integer index, T slot) {
         List<T> list = _get(date);
@@ -132,12 +145,26 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
         }
     }
 
+    /**
+     * If contains element
+     *
+     * @param date Date
+     * @param slot T
+     * @return Boolean
+     */
     @Override
     public boolean contains(Date date, T slot) {
         int index = indexOf(date, slot);
         return index != -1;
     }
 
+    /**
+     * Get object index in collection
+     *
+     * @param date Date
+     * @param slot T
+     * @return int
+     */
     @Override
     public int indexOf(Date date, T slot) {
         List<T> list = _get(date);
@@ -151,15 +178,31 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
         return -1;
     }
 
+    /**
+     * Empty collection
+     */
     @Override
     public void clear() {
         slots.clear();
     }
 
+    /**
+     * Find element. If not exists must be return empty list
+     *
+     * @param date Date
+     * @return List&lt;T&gt;
+     */
     private List<T> _get(Date date) {
         return this.slots.computeIfAbsent(date, k -> new ArrayList<>());
     }
 
+    /**
+     * Get Neighbors for element
+     *
+     * @param list List&lt;T&gt;
+     * @param slot T
+     * @return Neighbors
+     */
     private Neighbors getNeighbors(List<T> list, T slot) {
         Neighbors neighbors = new Neighbors(slot);
 

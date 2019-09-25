@@ -4,6 +4,7 @@ import java.sql.Time;
 
 /**
  * An ordered slot collection
+ * Collection elements must be implements this interface
  *
  * @author ulcigor
  * @version 1.0
