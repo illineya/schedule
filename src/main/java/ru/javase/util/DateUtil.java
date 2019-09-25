@@ -6,6 +6,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * Temporal library.
+ *
+ * @author ulcigor
+ * @version 1.0
+ */
 public class DateUtil {
     public static Calendar getDate() {
         Calendar calendar = Calendar.getInstance();

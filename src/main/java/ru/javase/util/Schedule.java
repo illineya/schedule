@@ -27,17 +27,13 @@ public interface Schedule<T extends Slot> extends Serializable {
             return duration;
         }
     }
-    void add(Date date, Slot slot);
-    void add(Date date, Slot slot, Boolean ignore_collision);
-    Slot get(Date date, Slot slot);
-    Slot get(Date date, Time time);
-    void remove(Date date, Slot slot);
-    void remove(Date date, Time time);
-    void set(Date date, Integer index, Slot slot);
-    boolean contains(Date date, Slot slot);
-    boolean contains(Date date, Time time);
-    int indexOf(Date date, Slot slot);
-    int indexOf(Date date, Time time);
+    void add(Date date, T slot);
+    void add(Date date, T slot, Boolean ignore_collision);
+    T get(Date date, T slot);
+    void remove(Date date, T slot);
+    void set(Date date, Integer index, T slot);
+    boolean contains(Date date, T slot);
+    int indexOf(Date date, T slot);
     void clear();
     String toString();
 }

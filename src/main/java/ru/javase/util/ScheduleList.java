@@ -9,28 +9,28 @@ import java.util.*;
  * @author ulcigor
  * @version 1.0
  */
-public class ScheduleList implements Schedule {
+public class ScheduleList<T extends Slot> implements Schedule<T> {
     private Integer duration;
     private Unit unit;
-    Map<Date, List<Slot>> slots = new HashMap<>();
+    Map<Date, List<T>> slots = new HashMap<>();
 
     private class Neighbors {
-        private Slot left;
-        private Slot right;
-        private Slot slot;
+        private T left;
+        private T right;
+        private T slot;
         private int index = 0;
 
-        public Neighbors(Slot slot) { this.slot = slot; }
-        public Slot getLeft() { return left; }
-        public void setLeft(Slot left) { this.left = left; }
-        public Slot getRight() { return right; }
-        public void setRight(Slot right) { this.right = right; }
+        public Neighbors(T slot) { this.slot = slot; }
+        public T getLeft() { return left; }
+        public void setLeft(T left) { this.left = left; }
+        public T getRight() { return right; }
+        public void setRight(T right) { this.right = right; }
         public int getIndex() { return index; }
         public void setIndex(int index) { this.index = index; }
-        public Slot getSlot() { return slot; }
-        public void setSlot(Slot slot) { this.slot = slot; }
+        public T getSlot() { return slot; }
+        public void setSlot(T slot) { this.slot = slot; }
 
-        public Slot getCollision() {
+        public T getCollision() {
             if(left != null && left.getTime().getTime() + (duration * unit.getDuration() * 1000) > slot.getTime().getTime()) {
                 return left;
             }
@@ -61,23 +61,31 @@ public class ScheduleList implements Schedule {
     }
 
     /**
-     * Must be binary search
+     * Add new element in collection
      *
      * @param date Date
-     * @param slot Slot
+     * @param slot T
      */
     @Override
-    public void add(Date date, Slot slot) {
+    public void add(Date date, T slot) {
         this.add(date, slot, false);
     }
 
+    /**
+     * Add new element in collection.
+     * May ignore collision
+     *
+     * @param date Date
+     * @param slot T
+     * @param ignore_collision Boolean
+     */
     @Override
-    public void add(Date date, Slot slot, Boolean ignore_collision) {
-        List<Slot> list = this._get(date);
+    public void add(Date date, T slot, Boolean ignore_collision) {
+        List<T> list = this._get(date);
         Neighbors neighbors = getNeighbors(list, slot);
 
         if(!ignore_collision) {
-            Slot collision_item = neighbors.getCollision();
+            T collision_item = neighbors.getCollision();
             if (collision_item != null) {
                 throw new ElementCollisionException("Element %s cross with %s", slot, collision_item);
             }
@@ -86,37 +94,34 @@ public class ScheduleList implements Schedule {
         list.add(neighbors.getIndex(), slot);
     }
 
+    /**
+     * Get element by date and time slot
+     *
+     * @param date Date
+     * @param slot T
+     * @return T
+     */
     @Override
-    public Slot get(Date date, Slot slot) {
-        List<Slot> list = _get(date);
+    public T get(Date date, T slot) {
+        List<T> list = _get(date);
 
         int index = indexOf(date, slot);
         return list.get(index);
     }
 
     @Override
-    public Slot get(Date date, Time time) {
-        return get(date, new SlotImpl(time));
-    }
-
-    @Override
-    public void remove(Date date, Slot slot) {
-        List<Slot> list = _get(date);
+    public void remove(Date date, T slot) {
+        List<T> list = _get(date);
 
         int index = indexOf(date, slot);
         list.remove(index);
     }
 
     @Override
-    public void remove(Date date, Time time) {
-        remove(date, new SlotImpl(time));
-    }
+    public void set(Date date, Integer index, T slot) {
+        List<T> list = _get(date);
 
-    @Override
-    public void set(Date date, Integer index, Slot slot) {
-        List<Slot> list = _get(date);
-
-        Slot item = list.get(index);
+        T item = list.get(index);
         list.remove(item);
 
         try {
@@ -128,19 +133,14 @@ public class ScheduleList implements Schedule {
     }
 
     @Override
-    public boolean contains(Date date, Slot slot) {
+    public boolean contains(Date date, T slot) {
         int index = indexOf(date, slot);
         return index != -1;
     }
 
     @Override
-    public boolean contains(Date date, Time time) {
-        return contains(date, new SlotImpl(time));
-    }
-
-    @Override
-    public int indexOf(Date date, Slot slot) {
-        List<Slot> list = _get(date);
+    public int indexOf(Date date, T slot) {
+        List<T> list = _get(date);
 
         for(int i=0; i<list.size(); i++) {
             if(list.get(i).getTime().getTime() == slot.getTime().getTime()) {
@@ -152,20 +152,15 @@ public class ScheduleList implements Schedule {
     }
 
     @Override
-    public int indexOf(Date date, Time time) {
-        return indexOf(date, new SlotImpl(time));
-    }
-
-    @Override
     public void clear() {
         slots.clear();
     }
 
-    private List<Slot> _get(Date date) {
+    private List<T> _get(Date date) {
         return this.slots.computeIfAbsent(date, k -> new ArrayList<>());
     }
 
-    private Neighbors getNeighbors(List<Slot> list, Slot slot) {
+    private Neighbors getNeighbors(List<T> list, T slot) {
         Neighbors neighbors = new Neighbors(slot);
 
         if(list.size() > 0) {

@@ -7,8 +7,6 @@ package ru.javase.util;
  * @version 1.0
  */
 public class ElementCollisionException extends RuntimeException {
-    private SlotImpl slot;
-
     ElementCollisionException(String message) {
         super(message);
     }

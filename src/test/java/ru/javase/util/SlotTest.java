@@ -5,11 +5,34 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import java.sql.Time;
 import java.text.ParseException;
 import java.util.Calendar;
 
 public class SlotTest {
     private static Logger logger = Logger.getLogger(SlotTest.class);
+
+    class SlotImpl implements Slot {
+        private Time time;
+
+        public void setTime(Time time) {
+            this.time = time;
+        }
+
+        SlotImpl() {}
+        SlotImpl(Time time) {
+            this.time = time;
+        }
+
+        public Time getTime() {
+            return time;
+        }
+
+        @Override
+        public String toString() {
+            return new StringBuffer("[").append("time=").append(time).append("]").toString();
+        }
+    }
 
     @Test
     public void test() throws ParseException {
@@ -36,7 +59,7 @@ public class SlotTest {
         try {
             schedule.add(calendar.getTime(), new SlotImpl(DateUtil.getTime("09:30")));
         } catch (ElementCollisionException e) {
-            e.printStackTrace();
+
         }
     }
 
@@ -51,7 +74,7 @@ public class SlotTest {
 
         schedule.remove(calendar.getTime(), new SlotImpl(DateUtil.getTime("10:00")));
 
-        int index = schedule.indexOf(calendar.getTime(), DateUtil.getTime("10:00"));
+        int index = schedule.indexOf(calendar.getTime(), new SlotImpl(DateUtil.getTime("10:00")));
         assertEquals(index, -1);
     }
 
@@ -66,13 +89,15 @@ public class SlotTest {
 
         //Change timeslot
         Slot slot = new SlotImpl(DateUtil.getTime("11:00"));
-        int index = schedule.indexOf(calendar.getTime(), DateUtil.getTime("10:00"));
+        int index = schedule.indexOf(calendar.getTime(), new SlotImpl(DateUtil.getTime("10:00")));
         schedule.set(calendar.getTime(), index, slot);
 
-        index = schedule.indexOf(calendar.getTime(), DateUtil.getTime("10:00"));
+        //Slot with time of 10:00 must be undefined
+        index = schedule.indexOf(calendar.getTime(), new SlotImpl(DateUtil.getTime("10:00")));
         assertEquals(index, -1);
 
-        index = schedule.indexOf(calendar.getTime(), DateUtil.getTime("11:00"));
+        //Slot with time of 11:00 must be found
+        index = schedule.indexOf(calendar.getTime(), new SlotImpl(DateUtil.getTime("11:00")));
         assertNotEquals(index, -1);
     }
 }
