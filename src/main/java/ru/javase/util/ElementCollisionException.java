@@ -11,11 +11,7 @@ public class ElementCollisionException extends RuntimeException {
         super(message);
     }
 
-    ElementCollisionException(String format, Slot slot) {
-        super(String.format(format, slot.getTime()));
-    }
-
-    ElementCollisionException(String format, Slot slot1, Slot slot2) {
-        super(String.format(format, slot1.getTime(), slot2.getTime()));
+    ElementCollisionException(String format, Slot ... slots) {
+        super(String.format(format, slots));
     }
 }
