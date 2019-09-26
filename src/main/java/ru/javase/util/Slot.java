@@ -11,6 +11,4 @@ import java.sql.Time;
  */
 public interface Slot {
     Time getTime();
-    Integer getNum();
-    Boolean getAvailable();
 }
