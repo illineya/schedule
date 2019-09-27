@@ -2,10 +2,7 @@ package ru.javase.util;
 
 import java.io.Serializable;
 import java.sql.Time;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Permit create schedules.
@@ -34,12 +31,10 @@ public interface Schedule<T extends Slot> extends Serializable {
     void add(Date date, T slot, Boolean ignore_collision);
     T get(Date date, T slot);
     void remove(Date date, T slot);
-    void set(Date date, Integer index, T slot);
     boolean contains(Date date, T slot);
-    int indexOf(Date date, T slot);
     void clear();
     String toString();
-    Map<Date, List<T>> getSlots();
+    Map<Date, Set<T>> getSlots();
     ScheduleList.Neighbors getNeighbors(Date date, T slot);
     Set<Date> getDates();
 }

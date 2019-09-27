@@ -9,6 +9,10 @@ import java.sql.Time;
  * @author ulcigor
  * @version 1.0
  */
-public interface Slot {
+public interface Slot extends Comparable<Slot> {
     Time getTime();
+    default int compareTo(Slot slot) {
+        Long result = getTime().getTime() - slot.getTime().getTime();
+        return result.intValue();
+    }
 }

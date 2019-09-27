@@ -11,21 +11,18 @@ import java.util.*;
 public class ScheduleList<T extends Slot> implements Schedule<T> {
     private Integer duration;
     private Unit unit;
-    private Map<Date, List<T>> slots = new TreeMap<>();
+    private Map<Date, Set<T>> slots = new TreeMap<>();
 
     public class Neighbors {
         private T left;
         private T right;
         private T slot;
-        private int index = 0;
 
         public Neighbors(T slot) { this.slot = slot; }
         public T getLeft() { return left; }
         public void setLeft(T left) { this.left = left; }
         public T getRight() { return right; }
         public void setRight(T right) { this.right = right; }
-        public int getIndex() { return index; }
-        public void setIndex(int index) { this.index = index; }
         public T getSlot() { return slot; }
         public void setSlot(T slot) { this.slot = slot; }
 
@@ -72,19 +69,21 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
      */
     @Override
     public void add(Date date, T slot, Boolean ignore_collision) {
-        List<T> list = this._get(date);
+        Set<T> list = this._get(date);
         Neighbors neighbors = getNeighbors(list, slot);
 
         if(!ignore_collision) {
             if (neighbors.isConflict()) {
-                if(neighbors.getLeft() != null && neighbors.getRight() != null)
-                throw new ElementCollisionException("Element %s conflict with %s and %s", slot, neighbors.getLeft(), neighbors.getRight());
+                if(neighbors.getLeft() != null && neighbors.getRight() != null) {
+                    throw new ElementCollisionException("Element %s conflict with %s and %s", slot, neighbors.getLeft(), neighbors.getRight());
+                }
+                if(neighbors.getLeft() != null) {
+                    throw new ElementCollisionException("Element %s conflict with %s", slot, neighbors.getLeft());
+                }
             }
         }
 
-        System.out.println(neighbors.getIndex() + " " + slot);
-
-        list.add(neighbors.getIndex(), slot);
+        list.add(slot);
     }
 
     /**
@@ -96,10 +95,14 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
      */
     @Override
     public T get(Date date, T slot) {
-        List<T> list = _get(date);
+        Set<T> list = _get(date);
 
-        int index = indexOf(date, slot);
-        return list.get(index);
+        Optional<T> element = list.stream().filter(line -> line.getTime().getTime() == slot.getTime().getTime()).findFirst();
+        if(element.isPresent()) {
+            return element.get();
+        }
+
+        return null;
     }
 
     /**
@@ -110,32 +113,10 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
      */
     @Override
     public void remove(Date date, T slot) {
-        List<T> list = _get(date);
+        Set<T> list = _get(date);
 
-        int index = indexOf(date, slot);
-        list.remove(index);
-    }
-
-    /**
-     * Update element
-     *
-     * @param date Date
-     * @param index Integer
-     * @param slot T
-     */
-    @Override
-    public void set(Date date, Integer index, T slot) {
-        List<T> list = _get(date);
-
-        T item = list.get(index);
+        T item = get(date, slot);
         list.remove(item);
-
-        try {
-            add(date, slot);
-        } catch (ElementCollisionException e) {
-            list.add(item);
-            throw new ElementCollisionException(e.getMessage());
-        }
     }
 
     /**
@@ -147,28 +128,8 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
      */
     @Override
     public boolean contains(Date date, T slot) {
-        int index = indexOf(date, slot);
-        return index != -1;
-    }
-
-    /**
-     * Get object index in collection
-     *
-     * @param date Date
-     * @param slot T
-     * @return int
-     */
-    @Override
-    public int indexOf(Date date, T slot) {
-        List<T> list = _get(date);
-
-        for(int i=0; i<list.size(); i++) {
-            if(list.get(i).getTime().getTime() == slot.getTime().getTime()) {
-                return i;
-            }
-        }
-
-        return -1;
+        T item = get(date, slot);
+        return item != null;
     }
 
     /**
@@ -185,7 +146,7 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
      * @return Map&lt;Date, List&lt;T&gt;&gt;
      */
     @Override
-    public Map<Date, List<T>> getSlots() {
+    public Map<Date, Set<T>> getSlots() {
         return slots;
     }
 
@@ -213,19 +174,15 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
      * @param slot T
      * @return Neighbors
      */
-    private Neighbors getNeighbors(List<T> list, T slot) {
+    private Neighbors getNeighbors(Set<T> list, T slot) {
         Neighbors neighbors = new Neighbors(slot);
 
-        for(int i=0; i<list.size(); i++) {
-            if(list.get(i).getTime().getTime() <= slot.getTime().getTime()) {
-                neighbors.setIndex(i + 1);
+        for(T item : list) {
+            if(item.getTime().getTime() < slot.getTime().getTime() && item.getTime().getTime() + duration * unit.getDuration() * 1000 > slot.getTime().getTime()) {
+                neighbors.setLeft(item);
             }
-
-            if(list.get(i).getTime().getTime() < slot.getTime().getTime() && list.get(i).getTime().getTime() + duration * unit.getDuration() * 1000 > slot.getTime().getTime()) {
-                neighbors.setLeft(list.get(i));
-            }
-            if(list.get(i).getTime().getTime() > slot.getTime().getTime() && list.get(i).getTime().getTime() - duration * unit.getDuration() * 1000 < slot.getTime().getTime()) {
-                neighbors.setRight(list.get(i));
+            if(item.getTime().getTime() > slot.getTime().getTime() && item.getTime().getTime() - duration * unit.getDuration() * 1000 < slot.getTime().getTime()) {
+                neighbors.setRight(item);
             }
         }
 
@@ -238,7 +195,7 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
      * @param date Date
      * @return List&lt;T&gt;
      */
-    private List<T> _get(Date date) {
-        return this.slots.computeIfAbsent(date, k -> new ArrayList<>());
+    private Set<T> _get(Date date) {
+        return this.slots.computeIfAbsent(date, k -> new TreeSet<>());
     }
 }
