@@ -75,10 +75,10 @@ public class ScheduleList<T extends Slot> implements Schedule<T> {
         if(!ignore_collision) {
             if (neighbors.isConflict()) {
                 if(neighbors.getLeft() != null && neighbors.getRight() != null) {
-                    throw new ElementCollisionException("Element %s conflict with %s and %s", slot, neighbors.getLeft(), neighbors.getRight());
+                    throw new ElementConflictException("Element %s conflict with %s and %s", slot, neighbors.getLeft(), neighbors.getRight());
                 }
                 if(neighbors.getLeft() != null) {
-                    throw new ElementCollisionException("Element %s conflict with %s", slot, neighbors.getLeft());
+                    throw new ElementConflictException("Element %s conflict with %s", slot, neighbors.getLeft());
                 }
             }
         }

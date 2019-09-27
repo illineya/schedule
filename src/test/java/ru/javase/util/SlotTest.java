@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import java.sql.Time;
 import java.text.ParseException;
 import java.util.Calendar;
-import java.util.List;
 
 public class SlotTest {
     private static Logger logger = Logger.getLogger(SlotTest.class);
@@ -59,7 +58,7 @@ public class SlotTest {
         //Create timeslot with collision
         try {
             schedule.add(calendar.getTime(), new SlotImpl(DateUtil.getTime("09:30")));
-        } catch (ElementCollisionException e) {
+        } catch (ElementConflictException e) {
             //e.printStackTrace();
         }
     }
