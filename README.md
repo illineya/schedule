@@ -1,5 +1,5 @@
 # schedule
-Library to support schedules on java
+Library create schedules on java
 
 * **Using**
 ```
